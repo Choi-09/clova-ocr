@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>처리 중...</title>
+  <script>
+    function checkProgress() {
+      fetch(`/progress/{{ filename }}`)
+        .then(response => response.json())
+        .then(data => {
+          const bar = document.getElementById('bar');
+          bar.style.width = data.progress + '%';
+          bar.innerText = data.progress + '%';
+
+          if (data.progress < 100) {
+            setTimeout(checkProgress, 1000);
+          } else {
+            window.location.href = "/result/" + "{{ filename | replace('.pdf', '_결과.xlsx') }}";
+          }
+        });
+    }
+    window.onload = checkProgress;
+  </script>
+  <style>
+    #bar {
+      width: 0%;
+      height: 30px;
+      background-color: green;
+      text-align: center;
+      color: white;
+    }
+    #container {
+      width: 100%;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h2>PDF 파일 처리 중...</h2>
+  <div id="container">
+    <div id="bar">0%</div>
+  </div>
+</body>
+</html>

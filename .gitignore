@@ -1,0 +1,33 @@
+# Python 관련
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.env
+*.venv
+env/
+venv/
+ENV/
+
+# Flask 업로드 폴더
+uploads/
+results/
+
+# 임시 작업 폴더
+temp_split/
+
+# 가상환경 관련
+.Python
+
+# IDE 관련 (VSCode, PyCharm 등)
+.vscode/
+.idea/
+
+# Mac OS 관련
+.DS_Store
+
+# 로그 파일
+*.log
+
+# Excel 결과 파일
+*.xlsx
