@@ -214,9 +214,14 @@ import requests
 import json
 from PyPDF2 import PdfReader, PdfWriter
 from openpyxl import Workbook
+from dotenv import load_dotenv
+
+
+load_dotenv() 
 
 # 기본 설정
 API_URL = os.getenv("API_URL")
+print("API_URL: ", API_URL)
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # PDF -> 단일 페이지 PDF로 분할
