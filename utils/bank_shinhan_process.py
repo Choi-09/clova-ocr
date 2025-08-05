@@ -6,8 +6,8 @@
 # import requests
 # import re
 #
-# api_url = 'https://7906wegr55.apigw.ntruss.com/custom/v1/42859/28a48082887b2437960de25863a3adf010070805a34ad69781decb9b27ddb8ca/infer'
-# secret_key = 'bldweElDbE9VdkZiQ2ljcGNIc0tueXpvWGN3RFVEWE8='
+# api_url = 
+# secret_key = 
 # image_file_path = 'C:\\Study\\law-vo\\'
 # image_file_name = '신한은행-거래내역'
 # file_format = '.pdf'
@@ -216,8 +216,8 @@ from PyPDF2 import PdfReader, PdfWriter
 from openpyxl import Workbook
 
 # 기본 설정
-API_URL = 'https://7906wegr55.apigw.ntruss.com/custom/v1/42859/28a48082887b2437960de25863a3adf010070805a34ad69781decb9b27ddb8ca/infer'
-SECRET_KEY = 'bldweElDbE9VdkZiQ2ljcGNIc0tueXpvWGN3RFVEWE8='
+API_URL = os.getenv("API_URL")
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # PDF -> 단일 페이지 PDF로 분할
 def split_pdf_pages(pdf_path, output_dir):
