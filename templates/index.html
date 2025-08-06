@@ -8,8 +8,8 @@
 <body class="bg-light">
   <div class="container mt-5">
     <div class="card shadow">
-      <div class="card-header bg-primary text-white">
-        <h4 class="mb-0">📄 PDF 거래내역 OCR 추출기</h4>
+      <div class="card-header text-white"  style="background: rgb(127,153,97)">
+        <h4 class="mb-0">📄 거래내역 추출기</h4>
       </div>
       <div class="card-body">
         <form action="/upload" method="POST" enctype="multipart/form-data">
@@ -17,7 +17,7 @@
             <label for="pdf_file" class="form-label">PDF 파일 선택</label>
             <input class="form-control" type="file" id="pdf_file" name="pdf_file" accept=".pdf" required>
           </div>
-          <button class="btn btn-success" type="submit">분석 시작</button>
+          <button class="btn" style="background: #005b94; color: white" type="submit">분석 시작</button>
         </form>
       </div>
     </div>
