@@ -1,13 +1,13 @@
-import os
-import uuid
-import time
-import re
-import requests
 import json
-from PyPDF2 import PdfReader, PdfWriter
-from openpyxl import Workbook
-from dotenv import load_dotenv
+import os
+import re
+import time
+import uuid
 
+import requests
+from PyPDF2 import PdfReader, PdfWriter
+from dotenv import load_dotenv
+from openpyxl import Workbook
 
 load_dotenv()
 
@@ -15,17 +15,11 @@ load_dotenv()
 API_URL = os.getenv("API_URL")
 SECRET_KEY = os.getenv("SECRET_KEY")
 
+
 # PDF -> 단일 페이지 PDF로 분할
 def split_pdf_pages(pdf_path, output_dir):
     """
-    PDF 파일을 페이지별로 분할하여 개별 PDF 파일로 저장합니다.
-
-    Args:
-        pdf_path (str): 원본 PDF 파일의 경로.
-        output_dir (str): 분할된 PDF 파일을 저장할 디렉토리.
-
-    Returns:
-        list: 분할된 각 페이지 PDF 파일의 경로 리스트.
+    PDF 파일을 페이지별로 분할하여 개별 PDF 파일로 저장
     """
     os.makedirs(output_dir, exist_ok=True)
     reader = PdfReader(pdf_path)
@@ -34,7 +28,7 @@ def split_pdf_pages(pdf_path, output_dir):
     base_filename = os.path.splitext(os.path.basename(pdf_path))[0]
 
     for i, page in enumerate(reader.pages):
-        path = os.path.join(output_dir, f"{base_filename}-{i+1}.pdf")
+        path = os.path.join(output_dir, f"{base_filename}-{i + 1}.pdf")
         with open(path, "wb") as f:
             writer = PdfWriter()
             writer.add_page(page)
@@ -42,16 +36,11 @@ def split_pdf_pages(pdf_path, output_dir):
         paths.append(path)
     return paths
 
+
 # OCR 요청
 def call_ocr_api(pdf_path):
     """
-    네이버 CLOVA OCR API를 호출하여 PDF 파일에서 텍스트를 추출합니다.
-
-    Args:
-        pdf_path (str): OCR을 수행할 PDF 파일의 경로.
-
-    Returns:
-        dict: OCR API 응답 JSON. 오류 발생 시 None.
+    네이버 CLOVA OCR API를 호출하여 PDF 파일에서 텍스트 추출
     """
     try:
         with open(pdf_path, 'rb') as file:
@@ -66,7 +55,7 @@ def call_ocr_api(pdf_path):
             files = [('file', file)]
             headers = {'X-OCR-SECRET': SECRET_KEY}
             response = requests.post(API_URL, headers=headers, data=payload, files=files)
-            response.raise_for_status() # HTTP 오류 발생 시 예외 발생
+            response.raise_for_status()  # HTTP 오류 발생 시 예외 발생
             # print(response.json())
             return response.json()
     except requests.exceptions.RequestException as e:
@@ -75,6 +64,7 @@ def call_ocr_api(pdf_path):
     except Exception as e:
         print(f"[ERROR] OCR API 처리 중 예상치 못한 오류 발생: {e}")
         return None
+
 
 # 기본 정보 추출
 def extract_basic_info(text):
@@ -94,135 +84,242 @@ def extract_basic_info(text):
             info[key] = match.group(1) if match else ''
     return info
 
+
 # 거래내역 추출
+# def extract_transaction_table_by_position(fields, y_threshold=10):
+#     """
+#     OCR fields를 이용해 거래내역 테이블을 헤더 기준으로 row별로 분리.
+#     각 row는 merged_header 기준으로 셀 단위로 분리됨.
+#     """
+#     # 1. 헤더 subFields와 메인 텍스트 블록 추출
+#     header_fields_from_subfields = []
+#     main_table_text_block_content = ""
+#
+#     for field_item in fields:
+#         if 'subFields' in field_item and field_item['subFields']:
+#             for sf in field_item['subFields']:
+#                 if sf.get('inferText') and sf.get('boundingPoly'):
+#                     header_fields_from_subfields.append({
+#                         'text': sf['inferText'].strip(),
+#                         'x': sum(v.get('x', 0) for v in sf['boundingPoly']['vertices']) / 4,
+#                         'y': sum(v.get('y', 0) for v in sf['boundingPoly']['vertices']) / 4
+#                     })
+#         # 긴 텍스트 블록은 메인 테이블로 간주
+#         if '\n' in field_item.get('inferText', '') and len(field_item.get('inferText', '').split('\n')) > 3:
+#             main_table_text_block_content = field_item['inferText']
+#         # print("main_table_text_block_content: ", main_table_text_block_content)
+#         # print("header_fields_from_subfields: ", header_fields_from_subfields)
+#     if not header_fields_from_subfields or not main_table_text_block_content:
+#         raise ValueError("헤더 또는 테이블 텍스트 블록을 찾을 수 없습니다.")
+#
+#     # 2. 헤더 행 찾기 (y 기준 그룹화)
+#     items = sorted(header_fields_from_subfields, key=lambda x: x['y'])
+#     rows, row, prev_y = [], [], None
+#     for item in items:
+#         if prev_y is None or abs(item['y'] - prev_y) <= y_threshold:
+#             row.append(item)
+#         else:
+#             rows.append(row)
+#             row = [item]
+#         prev_y = item['y']
+#     if row:
+#         rows.append(row)
+#
+#     # 3. 헤더 행 선택
+#     for row in rows:
+#         text_line = ''.join([i['text'] for i in row])
+#         if all(k in text_line for k in ['거래일자', '내용', '찾으신금액', '맡기신금액']):
+#             header_row = sorted(row, key=lambda x: x['x'])
+#             break
+#     else:
+#         raise ValueError("헤더를 찾을 수 없습니다.")
+#
+#     # 4. 헤더 병합 처리
+#     merged_header, merged_x = [], []
+#     i = 0
+#     while i < len(header_row):
+#         curr = header_row[i]['text']
+#         if i + 1 < len(header_row):
+#             next_text = header_row[i + 1]['text']
+#             if curr + next_text in ['비고', '잔액']:
+#                 merged_header.append(curr + next_text)
+#                 merged_x.append((header_row[i]['x'] + header_row[i + 1]['x']) / 2)
+#                 i += 2
+#                 continue
+#         merged_header.append(curr)
+#         merged_x.append(header_row[i]['x'])
+#         i += 1
+#
+#     # 5. 컬럼 경계 계산 (x 기준)
+#     column_boundaries = []
+#     for idx, x in enumerate(merged_x):
+#         left = (merged_x[idx - 1] + x) / 2 if idx > 0 else -float('inf')
+#         right = (x + merged_x[idx + 1]) / 2 if idx < len(merged_x) - 1 else float('inf')
+#         column_boundaries.append((left, right))
+#
+#     # 6. 숫자 뒤 문자 분리 함수
+#     def split_number_and_text(part):
+#         match = re.match(r'₩([\d,]+)\s*(.*)', part)
+#         if match:
+#             number = match.group(1)
+#             text = match.group(2).strip()
+#             if text:
+#                 return [number, text]
+#             else:
+#                 return [number]
+#         else:
+#             return [part]
+#
+#     # 7. 거래내역 행 그룹화
+#     aligned_rows = []
+#     # main_table_text_block_content를 subfield 단위로 word 추출
+#     words = []
+#     for field_item in fields:
+#         if 'subFields' not in field_item:
+#             continue
+#         for sf in field_item['subFields']:
+#             if sf.get('inferText') and sf.get('boundingPoly'):
+#                 cx = sum(v.get('x', 0) for v in sf['boundingPoly']['vertices']) / 4
+#                 cy = sum(v.get('y', 0) for v in sf['boundingPoly']['vertices']) / 4
+#                 words.append({'text': sf['inferText'], 'x': cx, 'y': cy})
+#
+#     # y 기준 row 그룹화
+#     words = sorted(words, key=lambda w: w['y'])
+#     rows_grouped, current_row, prev_y = [], [], None
+#     for w in words:
+#         if prev_y is None or abs(w['y'] - prev_y) <= y_threshold:
+#             current_row.append(w)
+#         else:
+#             rows_grouped.append(current_row)
+#             current_row = [w]
+#         prev_y = w['y']
+#     if current_row:
+#         rows_grouped.append(current_row)
+#
+#     # 8. 각 row에서 x 좌표 기준으로 컬럼에 맞춰 분배
+#     for word_row in rows_grouped:
+#         row_cells = [''] * len(merged_header)
+#         for w in word_row:
+#             for idx, (left, right) in enumerate(column_boundaries):
+#                 if left <= w['x'] < right:
+#                     split_parts = split_number_and_text(w['text'])
+#                     for sp_idx, sp in enumerate(split_parts):
+#                         target_idx = idx + sp_idx
+#                         if target_idx < len(row_cells):
+#                             if row_cells[target_idx]:
+#                                 row_cells[target_idx] += ' ' + sp
+#                             else:
+#                                 row_cells[target_idx] = sp
+#                     break
+#         # 모든 컬럼이 빈 값이면 skip
+#         if any(cell.strip() for cell in row_cells):
+#             aligned_rows.append(row_cells)
+#
+#     return merged_header, aligned_rows
 def extract_transaction_table_by_position(fields, y_threshold=5):
-    """
-    OCR 필드 데이터에서 거래내역 테이블을 추출합니다.
-    헤더는 subFields에서, 거래내역은 주요 inferText 블록에서 처리합니다.
+    header_fields = []
+    main_text = ""
 
-    Args:
-        fields (list): OCR API에서 반환된 모든 필드(텍스트 및 바운딩 박스) 리스트.
-        y_threshold (int): (이 함수에서는 직접 사용되지 않지만, 기존 시그니처 유지를 위해 남겨둠)
+    # OCR 결과 필드 전부 처리
+    for field in fields:
+        if 'subFields' in field and field['subFields']:
+            for sf in field['subFields']:
+                if sf.get('inferText') and sf.get('boundingPoly'):
+                    cx = sum(v.get('x', 0) for v in sf['boundingPoly']['vertices']) / 4
+                    cy = sum(v.get('y', 0) for v in sf['boundingPoly']['vertices']) / 4
+                    header_fields.append({'text': sf['inferText'].strip(), 'x': cx, 'y': cy})
+        if 'inferText' in field and field['inferText']:
+            main_text += field['inferText'] + " "
 
-    Returns:
-        tuple: (헤더 리스트, 거래내역 행 리스트).
-               각 거래내역 행은 셀 값의 리스트입니다.
-    Raises:
-        ValueError: 헤더 정보 또는 전체 테이블 텍스트 블록을 찾을 수 없는 경우.
-    """
-    header_fields_from_subfields = []
-    main_table_text_block_content = ""
+    if not header_fields:
+        # subFields가 없으면 전체 텍스트 단어로 대체
+        words = main_text.split()
+        for idx, word in enumerate(words):
+            header_fields.append({'text': word, 'x': idx * 10, 'y': 0})
 
-    # fields 리스트에서 헤더 subFields와 메인 테이블 텍스트 블록을 식별합니다.
-    for field_item in fields:
-        if 'subFields' in field_item and field_item['subFields']:
-            header_fields_from_subfields.extend([
-                {'text': sf['inferText'].strip(),
-                 'x': min(v.get('x', 0) for v in sf.get('boundingPoly', {}).get('vertices', [])),
-                 'y': sum(v.get('y', 0) for v in sf.get('boundingPoly', {}).get('vertices', [])) / 4}
-                for sf in field_item['subFields'] if sf.get('inferText') and sf.get('boundingPoly')
-            ])
-        # 여러 줄을 포함하고 길이가 긴 필드는 전체 테이블 텍스트 블록으로 간주합니다.
-        # OCR 응답 샘플에 따르면 'Field 01'이 이 역할을 합니다.
-        if '\n' in field_item.get('inferText', '') and len(field_item.get('inferText', '').split('\n')) > 3:
-            main_table_text_block_content = field_item['inferText']
-
-    if not header_fields_from_subfields or not main_table_text_block_content:
-        raise ValueError("OCR 응답에서 헤더 정보 또는 전체 테이블 텍스트 블록을 찾을 수 없습니다.")
-
-    # 1. 필드 정리 (텍스트 + 중심 좌표 추출) - 이 단계는 이제 header_fields_from_subfields에 직접 적용됩니다.
-    # header_fields_from_subfields는 이미 필요한 'text', 'x', 'y' 정보를 가지고 있습니다.
-
-    # 2. y 기준 정렬 및 행 그룹화 - 이 단계는 헤더 식별에만 사용됩니다.
-    # (기존 로직 유지)
-    items = sorted(header_fields_from_subfields, key=lambda x: x['y'])
-    rows_for_header_detection, row, prev_y = [], [], None
+    # y 기준으로 그룹화
+    items = sorted(header_fields, key=lambda x: x['y'])
+    rows, row, prev_y = [], [], None
     for item in items:
         if prev_y is None or abs(item['y'] - prev_y) <= y_threshold:
             row.append(item)
         else:
-            rows_for_header_detection.append(row)
+            rows.append(row)
             row = [item]
         prev_y = item['y']
     if row:
-        rows_for_header_detection.append(row)
+        rows.append(row)
 
-        # 3. 헤더 찾기 (기존 로직 유지)
-    for row in rows_for_header_detection:
-        joined_text = ''.join([item['text'] for item in row])
-        if all(key in joined_text for key in ['거래일자', '내용', '찾으신금액', '맡기신금액']):
-            header_row = sorted(row, key=lambda x: x['x'])
-            header_y = sum(item['y'] for item in row) / len(row)
+    # 헤더 찾기 (키워드가 여러 row에 나눠져 있어도 병합)
+    header_row = None
+    header_keywords = ['거래일자', '내용', '찾으신금액', '맡기신금액']
+    for r in rows:
+        text_line = ''.join([i['text'] for i in r])
+        if all(k in text_line for k in header_keywords):
+            header_row = sorted(r, key=lambda x: x['x'])
             break
-    else:
-        raise ValueError("헤더를 찾을 수 없습니다.")
+    if not header_row:
+        # fallback: 첫 row를 헤더로
+        header_row = sorted(rows[0], key=lambda x: x['x'])
 
-    # 4. 헤더 병합 처리 및 위치 설정
-    merged_header, merged_x = [], []
-    i = 0
-    while i < len(header_row):
-        curr = header_row[i]['text']
-        if i + 1 < len(header_row):
-            next_text = header_row[i + 1]['text']
-            if curr + next_text in ['비고', '잔액']:
-                merged_header.append(curr+ next_text)
-                merged_x.append((header_row[i]['x'] + header_row[i + 1]['x']) // 2)
-                i += 2
-                continue
-        merged_header.append(curr)
-        merged_x.append(header_row[i]['x'])
-        i += 1
+    # 헤더와 x 좌표
+    merged_header = [i['text'] for i in header_row]
+    merged_x = [i['x'] for i in header_row]
 
-    # 5. x 위치 기준 경계 계산 (기존 로직 유지)
+    # 컬럼 경계 계산
     column_boundaries = []
-    if not merged_x: # 헤더가 없는 경우 처리
+    if len(merged_x) == 0:
+        # 헤더 없음 → 빈 결과 반환
         return [], []
+    elif len(merged_x) == 1:
+        column_boundaries.append((-float('inf'), float('inf')))
+    else:
+        for idx, x in enumerate(merged_x):
+            left = (merged_x[idx - 1] + x) / 2 if idx > 0 else -float('inf')
+            right = (x + merged_x[idx + 1]) / 2 if idx < len(merged_x) - 1 else float('inf')
+            column_boundaries.append((left, right))
 
-    for i in range(len(merged_x)):
-        left = (merged_x[i - 1] + merged_x[i]) / 2 if i > 0 else -float('inf')
-        right = (merged_x[i] + merged_x[i + 1]) / 2 if i < len(merged_x) - 1 else float('inf')
-        column_boundaries.append((left, right))
-
-    # 6. 거래내역 행 정렬
-    aligned_rows = []
-    lines = main_table_text_block_content.split('\n')
-
-    # 실제 데이터가 시작하는 행 찾기 (날짜 패턴으로 식별)
-    data_start_index = -1
-    for i, line in enumerate(lines):
-        # YYYY-MM-DD 또는 YY-MM-DD 또는 YYYY.MM.DD 또는 YY.MM.DD 패턴
-        if re.match(r'(\d{4}[-.]\d{2}[-.]\d{2}|\d{2}[-.]\d{2}[-.]\d{2})', line.strip()):
-            data_start_index = i
-            break
-
-    if data_start_index == -1:
-        print("[WARNING] 거래내역 데이터 시작점을 찾을 수 없습니다. 전체 텍스트 블록을 확인하세요.")
-        return merged_header, [] # 데이터 행을 찾지 못하면 빈 리스트 반환
-
-    for line_str in lines[data_start_index:]:
-        line_str = line_str.strip()
-        if not line_str: # 빈 줄 건너뛰기
+    # 모든 word 추출
+    words = []
+    for field in fields:
+        if 'subFields' not in field:
             continue
+        for sf in field['subFields']:
+            if sf.get('inferText') and sf.get('boundingPoly'):
+                cx = sum(v.get('x', 0) for v in sf['boundingPoly']['vertices']) / 4
+                cy = sum(v.get('y', 0) for v in sf['boundingPoly']['vertices']) / 4
+                words.append({'text': sf['inferText'], 'x': cx, 'y': cy})
 
-        aligned_row = [''] * len(merged_header)
+    # y 기준 row 그룹화
+    words = sorted(words, key=lambda w: w['y'])
+    rows_grouped, current_row, prev_y = [], [], None
+    for w in words:
+        if prev_y is None or abs(w['y'] - prev_y) <= y_threshold:
+            current_row.append(w)
+        else:
+            rows_grouped.append(current_row)
+            current_row = [w]
+        prev_y = w['y']
+    if current_row:
+        rows_grouped.append(current_row)
 
-        parts = re.split(r'\s{2,}', line_str)
-
-        # 분리된 부분을 헤더 열에 순차적으로 할당
-        for p_idx, part in enumerate(parts):
-            if p_idx < len(aligned_row):
-                # 기존 내용이 있으면 공백으로 구분하여 추가
-                if aligned_row[p_idx]:
-                    aligned_row[p_idx] += " " + part
-                else:
-                    aligned_row[p_idx] = part
-            else:
-                # 분리된 부분이 헤더 열보다 많으면 마지막 열에 추가 (병합)
-                aligned_row[-1] += (" " + part) if aligned_row[-1] else part
-
-        aligned_rows.append(aligned_row)
+    # 각 row를 column에 맞춰 분배
+    aligned_rows = []
+    for word_row in rows_grouped:
+        row_cells = [''] * len(merged_header)
+        for w in word_row:
+            for idx, (left, right) in enumerate(column_boundaries):
+                if left <= w['x'] < right:
+                    if row_cells[idx]:
+                        row_cells[idx] += ' ' + w['text']
+                    else:
+                        row_cells[idx] = w['text']
+                    break
+        if any(cell.strip() for cell in row_cells):
+            aligned_rows.append(row_cells)
 
     return merged_header, aligned_rows
+
 
 # 숫자 앞 문자 원화 기호로 바꾸기
 def replace_W_before_number(text):
@@ -236,6 +333,7 @@ def replace_W_before_number(text):
         str: 원화 기호로 대체된 텍스트.
     """
     return re.sub(r'[W\\](?=\d)', '₩', text)
+
 
 # Excel 저장
 def save_to_excel(wb, sheet_name, basic_info, header, rows):
@@ -256,8 +354,9 @@ def save_to_excel(wb, sheet_name, basic_info, header, rows):
     ws.append([])
     ws.append([f"[{sheet_name} - 거래 내역]"])
     ws.append(header)
-    for row in rows:
+    for row in rows[1:]:
         ws.append([replace_W_before_number(cell) for cell in row])
+
 
 # 실행
 def process_pdf_and_ocr(input_pdf_path, update_progress_callback=None):
@@ -286,6 +385,8 @@ def process_pdf_and_ocr(input_pdf_path, update_progress_callback=None):
         print(f"📄 처리 중: 페이지 {idx + 1}/{total_pages}")
 
         result = call_ocr_api(page_pdf)
+
+        print("result: ", result)
         if not result or 'images' not in result:
             print(f"[⚠️] 페이지 {idx + 1} OCR 실패 또는 응답에 'images' 키 없음.")
             if update_progress_callback:
@@ -308,23 +409,21 @@ def process_pdf_and_ocr(input_pdf_path, update_progress_callback=None):
                 # 단순히 full_page_text_for_basic_info에 추가합니다.
                 full_page_text_for_basic_info += image_data['title'].get('inferText', '') + " "
 
-
         # 페이지 처리 진행률 업데이트
         if update_progress_callback:
             progress = (idx + 1) / total_pages * 100
             update_progress_callback(int(progress))
 
-
-
         # 기본 정보 추출
         basic_info = extract_basic_info(full_page_text_for_basic_info)
-        print(f'페이지 {idx+1}에서 추출된 텍스트 (일부): {full_page_text_for_basic_info[:200]}...') # 디버깅을 위해 처음 200자 인쇄
+        print(f'페이지 {idx + 1}에서 추출된 텍스트 (일부): {full_page_text_for_basic_info[:200]}...')  # 디버깅을 위해 처음 200자 인쇄
 
         try:
             # extract_transaction_table_by_position 함수에 모든 필드를 전달합니다.
             header, rows = extract_transaction_table_by_position(all_fields_from_ocr)
+            print(f"✅ 페이지 {idx + 1} 거래 내역 추출 완료.")
             save_to_excel(wb, f"페이지 {idx + 1}", basic_info, header, rows)
-            print(f"✅ 페이지 {idx + 1} 거래 내역 추출 및 Excel 저장 완료.")
+            print(f"✅ 페이지 {idx + 1} 거래 내역 저장 완료.")
         except ValueError as ve:
             print(f"[❌] 페이지 {idx + 1} 거래 내역 처리 오류: {ve}")
         except Exception as e:
