@@ -150,8 +150,10 @@ def extract_transaction_table_by_position(fields, y_threshold=5):
         # 3. 헤더 찾기 (기존 로직 유지)
     for row in rows_for_header_detection:
         joined_text = ''.join([item['text'] for item in row])
-        if all(key in joined_text for key in ['거래일자', '내용', '찾으신금액', '맡기신금액']):
+        print("joined_text: ", joined_text)
+        if all(key in joined_text for key in ['거래일자', '내용', '찾으신금액', '기신금액']):
             header_row = sorted(row, key=lambda x: x['x'])
+            print("header_row: ", header_row)
             header_y = sum(item['y'] for item in row) / len(row)
             break
     else:
