@@ -17,7 +17,7 @@
             setTimeout(checkProgress, 1000);
           } else if (data.progress === 100) {
             window.location.href = `/result/{{ task_id }}`;
-          } else if (data.progress === -1) {
+          } else if (data.progress === 9999) {
             alert("PDF 처리 중 오류가 발생했습니다.");
           }
         });
