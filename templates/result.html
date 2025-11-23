@@ -2,20 +2,72 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>결과 다운로드</title>
+  <title>리걸옵틱스 | 분석 완료</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: #f5f7fa;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+    .card {
+      border: none;
+      border-radius: 16px;
+    }
+    .brand-title {
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      color: #1b3a57;
+    }
+    .result-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .btn-primary {
+      background-color: #1b3a57;
+      border: none;
+    }
+    .btn-primary:hover {
+      background-color: #244d74;
+    }
+    .btn-outline-secondary {
+      border-radius: 999px;
+    }
+  </style>
 </head>
-<body class="bg-light">
-  <div class="container mt-5 text-center">
-    <div class="card shadow">
-      <div class="card-body">
-        <h4 class="mb-4">🎉 분석 완료!</h4>
-        <p>아래 버튼을 눌러 결과 파일을 다운로드하세요.</p>
-        <a href="{{ url_for('download_file', filename=filename) }}" class="btn btn-primary">📥 결과 다운로드</a>
-        <br><br>
-        <a href="/" class="btn btn-secondary">다시 업로드하기</a>
+<body>
+  <div class="container mt-5">
+    <!-- 브랜드 헤더 -->
+    <div class="text-center mb-4">
+      <h2 class="brand-title">리걸옵틱스 LegalOptics</h2>
+      <p class="text-muted">AI가 문서를 이해하고 법률이 데이터를 만납니다.</p>
+    </div>
+
+    <!-- 본문 카드 -->
+    <div class="card shadow-sm mx-auto" style="max-width: 600px;">
+      <div class="card-body text-center py-5">
+        <div class="result-icon">✅</div>
+        <h4 class="mb-3">PDF 분석이 완료되었습니다.</h4>
+        <p class="text-secondary mb-4">
+          추출된 거래내역을 아래 버튼을 눌러 결과 파일을 다운로드하세요.<br>
+        </p>
+
+        <div class="d-grid gap-3 col-10 mx-auto">
+          <a href="{{ url_for('download_result', task_id=task_id) }}"
+             class="btn btn-primary btn-lg">
+            📥 결과 파일 다운로드
+          </a>
+          <a href="/"
+             class="btn btn-outline-secondary">
+            다시 업로드하기
+          </a>
+        </div>
       </div>
     </div>
+
+    <!-- 푸터 -->
+    <footer class="text-center mt-4 text-muted small">
+      © 2025 리걸옵틱스 LegalOptics — 법률문서의 새로운 시각
+    </footer>
   </div>
 </body>
 </html>

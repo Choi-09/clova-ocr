@@ -2,25 +2,71 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>PDF OCR 업로드</title>
+  <title>리걸옵틱스 | 거래내역서 추출기</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: #f5f7fa;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+    .card {
+      border: none;
+      border-radius: 16px;
+    }
+    .brand-title {
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      color: #1b3a57;
+    }
+    .upload-area {
+      border: 2px dashed #a3b3c5;
+      border-radius: 12px;
+      padding: 40px;
+      transition: all 0.3s ease;
+      background: #fff;
+    }
+    .upload-area:hover {
+      background: #f0f4f8;
+      border-color: #1b3a57;
+    }
+    .btn-primary {
+      background-color: #1b3a57;
+      border: none;
+    }
+    .btn-primary:hover {
+      background-color: #244d74;
+    }
+  </style>
 </head>
-<body class="bg-light">
+<body>
   <div class="container mt-5">
-    <div class="card shadow">
-      <div class="card-header text-white"  style="background: rgb(127,153,97)">
-        <h4 class="mb-0">📄 거래내역 추출기</h4>
-      </div>
+    <div class="text-center mb-4">
+      <h2 class="brand-title">리걸옵틱스 LegalOptics</h2>
+      <p class="text-muted">AI가 문서를 이해하고 법률이 데이터를 만납니다.</p>
+    </div>
+
+    <div class="card shadow-sm">
       <div class="card-body">
-        <form action="/upload" method="POST" enctype="multipart/form-data">
-          <div class="mb-3">
-            <label for="pdf_file" class="form-label">PDF 파일 선택</label>
-            <input class="form-control" type="file" id="pdf_file" name="pdf_file" accept=".pdf" required>
+        <h4 class="mb-3 text-center">📄 거래내역 추출기</h4>
+        <p class="text-center text-secondary">
+          PDF 형태의 거래내역서를 업로드하면 AI가 자동으로 표를 인식하고 엑셀로 정리해드립니다.
+        </p>
+
+        <form action="/upload" method="POST" enctype="multipart/form-data" class="mt-4">
+          <div class="upload-area text-center mb-4">
+            <label for="pdf_file" class="form-label fw-semibold">PDF 파일을 선택하거나 드래그하세요.</label>
+            <input class="form-control mt-3" type="file" id="pdf_file" name="pdf_file" accept=".pdf" required>
           </div>
-          <button class="btn" style="background: #005b94; color: white" type="submit">분석 시작</button>
+          <div class="text-center">
+            <button class="btn btn-primary px-5 py-2" type="submit">분석 시작하기</button>
+          </div>
         </form>
       </div>
     </div>
+
+    <footer class="text-center mt-4 text-muted small">
+      © 2025 리걸옵틱스 LegalOptics — 법률문서의 새로운 시각
+    </footer>
   </div>
 </body>
 </html>

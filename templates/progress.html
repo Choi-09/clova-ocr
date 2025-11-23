@@ -2,43 +2,118 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>처리 중...</title>
+  <title>리걸옵틱스 | 거래내역 추출 중...</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script>
     function checkProgress() {
-      fetch(`/progress/{{ filename }}`)
+      fetch(`/progress/{{ task_id }}`)
         .then(response => response.json())
         .then(data => {
           const bar = document.getElementById('bar');
           bar.style.width = data.progress + '%';
           bar.innerText = data.progress + '%';
 
-          if (data.progress < 100) {
+          if (data.progress < 100 && data.progress >= 0) {
             setTimeout(checkProgress, 1000);
-          } else {
-            window.location.href = "/result/" + "{{ filename | replace('.pdf', '_결과.xlsx') }}";
+          } else if (data.progress === 100) {
+            window.location.href = `/result/{{ task_id }}`;
+          } else if (data.progress === -1) {
+            alert("PDF 처리 중 오류가 발생했습니다.");
           }
         });
     }
     window.onload = checkProgress;
   </script>
   <style>
+    body {
+      background: #f5f7fa;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+    .card {
+      border: none;
+      border-radius: 16px;
+    }
+    .brand-title {
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      color: #1b3a57;
+    }
+    .progress-wrapper {
+      border-radius: 999px;
+      background: #e2e8f0;
+      overflow: hidden;
+      height: 32px;
+    }
     #bar {
       width: 0%;
-      height: 30px;
-      background-color: green;
+      height: 32px;
+      background-color: #1b3a57;
       text-align: center;
       color: white;
+      line-height: 32px;
+      border-radius: 999px;
+      transition: width 0.4s ease;
+      font-weight: 500;
     }
-    #container {
-      width: 100%;
-      border: 1px solid #ccc;
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.8rem;
+      border-radius: 999px;
+      background: #e0edf8;
+      color: #1b3a57;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(27, 58, 87, 0.2);
+      border-top-color: #1b3a57;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
-  <h2>PDF 파일 처리 중...</h2>
-  <div id="container">
-    <div id="bar">0%</div>
+  <div class="container mt-5">
+    <!-- 브랜드 헤더 -->
+    <div class="text-center mb-4">
+      <h2 class="brand-title">리걸옵틱스 LegalOptics</h2>
+      <p class="text-muted">AI가 문서를 이해하고 법률이 데이터를 만납니다.</p>
+    </div>
+
+    <!-- 본문 카드 -->
+    <div class="card shadow-sm mx-auto" style="max-width: 640px;">
+      <div class="card-body text-center py-5 px-4">
+        <div class="status-badge mb-3 mx-auto">
+          <div class="spinner"></div>
+          <span>PDF 거래내역 추출 중...</span>
+        </div>
+
+        <h4 class="mb-3">문서를 분석하고 있습니다.</h4>
+        <p class="text-secondary mb-4">
+          업로드하신 PDF에서 표 구조를 인식하고<br>
+          거래내역을 엑셀로 변환하는 중입니다.
+        </p>
+
+        <div class="progress-wrapper mb-2 mx-auto" style="max-width: 480px;">
+          <div id="bar">0%</div>
+        </div>
+        <p class="text-muted small mb-0">
+          처리 완료 시 자동으로 결과 페이지로 이동합니다.
+        </p>
+      </div>
+    </div>
+
+    <!-- 푸터 -->
+    <footer class="text-center mt-4 text-muted small">
+      © 2025 리걸옵틱스 LegalOptics — 법률문서의 새로운 시각
+    </footer>
   </div>
 </body>
 </html>

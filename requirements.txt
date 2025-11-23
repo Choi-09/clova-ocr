@@ -1,3 +1,8 @@
+pandas
+opencv-python
+pdf2image
+numpy
+python-dotenv
 Flask>=2.0.0
 requests>=2.0.0
 openpyxl>=3.0.0
